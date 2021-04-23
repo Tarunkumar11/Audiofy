@@ -133,13 +133,10 @@ class PodcastList(APIView):
         return temp_participant
                 
 
-
-
-
-
 class AudiobookList(APIView):
     serializer_class = AudiobookSerializer
     queryset = Audiobook.objects.all()
+    permission_classes = [permissions.AllowAny]
     
     def get_object(self, pk):
         try:
@@ -168,10 +165,12 @@ class AudiobookList(APIView):
         serializer = AudiobookSerializer(data=request.data)
         if not serializer.is_valid():
             return Response({"Error": "Validation Error"}, status=status.HTTP_400_BAD_REQUEST)
-        audio_book = Audiobook(title=request.data['title'],author=request.data['author'], narrator=request.data['narrator'],duration=request.data['duration'])
+        author = User.objects.get(username=request.data['author'])
+        narrator = User.objects.get(username=request.data['narrator'])
+        audio_book = Audiobook(title=request.data['title'],author=author, narrator=narrator,duration=request.data['duration'])
         audio_book.save()
         data = {"Info":'Sucessfully Stored'}
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(AudiobookSerializer(Audiobook.objects.get(pk=audio_book.id)).data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk, format=None):
         audio_book = self.get_object(pk)
