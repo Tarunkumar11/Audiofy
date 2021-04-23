@@ -32,13 +32,22 @@ class PodcastSerializersave(serializers.ModelSerializer):
         read_only_fields = ['uploaded_time']
 
 
-class AudiobookSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only=True)
-    narrator  = UserSerializer(read_only=True)
+class AudiobookSerializersave(serializers.ModelSerializer):
+    author = serializers.SlugRelatedField(many=False, read_only=True,slug_field='username')
+    narrator= serializers.SlugRelatedField(many=False, read_only=True,slug_field='username')
     class Meta:
         model = Audiobook
         fields = ['pk', 'title', 'author','narrator','duration','uploaded_time']
         read_only_fields = ['uploaded_time']
+
+class AudiobookSerializerget(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    narrator= UserSerializer(read_only=True)
+    class Meta:
+        model = Audiobook
+        fields = ['pk', 'title', 'author','narrator','duration','uploaded_time']
+        read_only_fields = ['uploaded_time']
+
 
         
         
