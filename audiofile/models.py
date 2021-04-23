@@ -16,7 +16,7 @@ class Podcast(models.Model):
 
 class Audiobook(models.Model):
     title  = models.CharField(verbose_name="Book title", max_length=100,blank=False,null=False,)
-    author = models.ForeignKey(User,on_delete=models.CASCADE,related_name="Author")
-    narrator = models.ForeignKey(User,on_delete=models.CASCADE)
+    author = models.ForeignKey(User,verbose_name="Author name",on_delete=models.CASCADE,related_name="Author")
+    narrator = models.ForeignKey(User,verbose_name="Narrator name",on_delete=models.CASCADE)
     duration = models.PositiveIntegerField(verbose_name="Audio Book duration",blank=False,null=False)
     uploaded_time = models.DateField(verbose_name='uploaded_time', blank=False, null=False,default=timezone.now())

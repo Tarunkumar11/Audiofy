@@ -4,11 +4,10 @@ from rest_framework import serializers, status
 from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from audiofile.models import Song, Podcast, Audiobook
-from .serializers import SongSerializer,PodcastSerializer,AudiobookSerializer,UserSerializer,PodcastSerializersave
+from .serializers import SongSerializer,PodcastSerializerget,AudiobookSerializerget,UserSerializer,PodcastSerializersave,AudiobookSerializersave
 from django.http import Http404
 from account.models import User
-import json
-from django.forms.models import model_to_dict
+
 
 class SongList(APIView):
     serializer_class = SongSerializer
@@ -59,7 +58,7 @@ class SongList(APIView):
         return Response( {"info": "Song has been deleted successfully"},status=status.HTTP_204_NO_CONTENT)
 
 class PodcastList(APIView):
-    serializer_class = PodcastSerializer
+    serializer_class = PodcastSerializerget
     queryset = Podcast.objects.all()
     permission_classes = [permissions.AllowAny]
 
@@ -72,10 +71,10 @@ class PodcastList(APIView):
     def get(self, request,pk=None):
         if not pk is  None:
             podcast = self.get_object(pk)
-            serializer = PodcastSerializer(podcast)
+            serializer = PodcastSerializerget(podcast)
         else:
             podcast = Podcast.objects.all()
-            serializer = PodcastSerializer(podcast, many=True)
+            serializer = PodcastSerializerget(podcast, many=True)
         return Response(serializer.data) 
 
     def put(self, request, pk=None, format=None):
@@ -83,13 +82,15 @@ class PodcastList(APIView):
             data =  {"info": "Please provide the ID of the song"}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         Onepodcast = self.get_object(pk)
-        serializer = PodcastSerializer(Onepodcast, data=request.data)
+        serializer = PodcastSerializersave(Onepodcast, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    def post(self,request):
+    def post(self,request,pk=None):
+        if pk is not None:
+            return Response({'Error':"Bad Request"}, status=status.HTTP_400_BAD_REQUEST)
 
         if len(request.data.get('participants'))>10:
             return Response({'Error':"Maximam 10 Participants can be added"}, status=status.HTTP_400_BAD_REQUEST)
@@ -102,9 +103,7 @@ class PodcastList(APIView):
         if host is None:
             return Response({'Error':"Please provide correct host"}, status=status.HTTP_400_BAD_REQUEST)
 
-        request.data['host'] = host.id
         serializer = PodcastSerializersave(data=request.data)
-
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -114,13 +113,14 @@ class PodcastList(APIView):
             obj  = User.objects.get(username=participant)
             onepodcast.participants.add(obj)
         onepodcast.save()
-        return Response(PodcastSerializer(Podcast.objects.get(pk=onepodcast.id)).data, status=status.HTTP_200_OK)
+        return Response(PodcastSerializerget(Podcast.objects.get(pk=onepodcast.id)).data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk, format=None):
         podcast = self.get_object(pk)
+        name = podcast.name
         podcast.delete()
-        messages = {'message':'Podcast has been deleted'}
-        return Response(messages,status=status.HTTP_204_NO_CONTENT)
+        messages = {'message':'{0} Podcast has been deleted'.format(name)}
+        return Response(messages,status=status.HTTP_200_NO_CONTENT)
 
     def check_participant(self,participants):
         temp_participant = ''
@@ -133,13 +133,10 @@ class PodcastList(APIView):
         return temp_participant
                 
 
-
-
-
-
 class AudiobookList(APIView):
-    serializer_class = AudiobookSerializer
+    serializer_class = AudiobookSerializersave
     queryset = Audiobook.objects.all()
+    permission_classes = [permissions.AllowAny]
     
     def get_object(self, pk):
         try:
@@ -150,30 +147,38 @@ class AudiobookList(APIView):
     def get(self, request,pk=None):
         if pk != None:
             audio_book = self.get_object(pk)
-            serializer = AudiobookSerializer(audio_book)
+            serializer = AudiobookSerializerget(audio_book)
         else:
             audio_book = Audiobook.objects.all()
-            serializer = AudiobookSerializer(audio_book, many=True)
+            serializer = AudiobookSerializerget(audio_book, many=True)
         return Response(serializer.data) 
 
-    def put(self, request, pk, format=None):
+    def put(self, request, pk=None, format=None):
+        if pk is None:
+            return Response({"message":"Please provide audiobook ID"})
+
         one_audio_book = self.get_object(pk)
-        serializer = AudiobookSerializer(one_audio_book, data=request.data)
+        serializer = AudiobookSerializersave(one_audio_book, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     def post(self,request,pk=None):
-        serializer = AudiobookSerializer(data=request.data)
+        serializer = AudiobookSerializersave(data=request.data)
+        if  serializer.is_valid():
+            print(serializer.data)
         if not serializer.is_valid():
-            return Response({"Error": "Validation Error"}, status=status.HTTP_400_BAD_REQUEST)
-        audio_book = Audiobook(title=request.data['title'],author=request.data['author'], narrator=request.data['narrator'],duration=request.data['duration'])
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        author = User.objects.get(username=request.data['author'])
+        narrator = User.objects.get(username=request.data['narrator'])
+        audio_book = Audiobook(title=request.data['title'],author=author, narrator=narrator,duration=request.data['duration'])
         audio_book.save()
-        data = {"Info":'Sucessfully Stored'}
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(AudiobookSerializerget(Audiobook.objects.get(pk=audio_book.id)).data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk, format=None):
         audio_book = self.get_object(pk)
+        title = audio_book.title
         audio_book.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        message = {'message':"{0} has been deleted".format(title)}
+        return Response(message,status=status.HTTP_204_NO_CONTENT)
