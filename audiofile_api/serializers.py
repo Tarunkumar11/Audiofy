@@ -15,20 +15,21 @@ class SongSerializer(serializers.ModelSerializer):
         read_only_fields = ['uploaded_time']
     
 
-class PodcastSerializer(serializers.ModelSerializer):
-    host = UserSerializer(serializers.RelatedField(source='User', read_only=True))
-    participants  = UserSerializer(read_only=True,many=True)
+class PodcastSerializersave(serializers.ModelSerializer):
+    host   = serializers.SlugRelatedField(queryset=User.objects.all(),many=False, read_only=False,slug_field='username')
+    participants = serializers.SlugRelatedField(queryset=User.objects.all(),many=True, read_only=False,slug_field='username')
+
     class Meta:
         model = Podcast
-        fields = ['pk', 'name', 'duration','uploaded_time','host','participants']
+        fields = ['pk', 'name', 'duration','host','uploaded_time','participants']
         read_only_fields = ['uploaded_time']
     
-class PodcastSerializersave(serializers.ModelSerializer):
-    #host = UserSerializer(serializers.RelatedField(source='User', read_only=True))
-    participants  = UserSerializer(read_only=True,many=True)
+class PodcastSerializerget(serializers.ModelSerializer):
+    host   = UserSerializer(read_only=True)
+    participants = UserSerializer(read_only=True,many=True)
     class Meta:
         model = Podcast
-        fields = ['pk', 'name', 'duration','uploaded_time','host','participants']
+        fields = ['pk', 'name', 'duration','host','uploaded_time','participants']
         read_only_fields = ['uploaded_time']
 
 
