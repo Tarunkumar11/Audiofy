@@ -33,8 +33,8 @@ class PodcastSerializersave(serializers.ModelSerializer):
 
 
 class AudiobookSerializersave(serializers.ModelSerializer):
-    author = serializers.SlugRelatedField(many=False, read_only=True,slug_field='username')
-    narrator= serializers.SlugRelatedField(many=False, read_only=True,slug_field='username')
+    author   = serializers.SlugRelatedField(queryset=User.objects.all(),many=False, read_only=False,slug_field='username')
+    narrator = serializers.SlugRelatedField(queryset=User.objects.all(),many=False, read_only=False,slug_field='username')
     class Meta:
         model = Audiobook
         fields = ['pk', 'title', 'author','narrator','duration','uploaded_time']

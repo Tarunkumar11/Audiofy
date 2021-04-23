@@ -134,7 +134,7 @@ class PodcastList(APIView):
                 
 
 class AudiobookList(APIView):
-    serializer_class = AudiobookSerializerget
+    serializer_class = AudiobookSerializersave
     queryset = Audiobook.objects.all()
     permission_classes = [permissions.AllowAny]
     
@@ -155,7 +155,7 @@ class AudiobookList(APIView):
 
     def put(self, request, pk, format=None):
         one_audio_book = self.get_object(pk)
-        serializer = AudiobookSerializer(one_audio_book, data=request.data)
+        serializer = AudiobookSerializersave(one_audio_book, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -163,6 +163,8 @@ class AudiobookList(APIView):
     
     def post(self,request,pk=None):
         serializer = AudiobookSerializersave(data=request.data)
+        if  serializer.is_valid():
+            print(serializer.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         author = User.objects.get(username=request.data['author'])
