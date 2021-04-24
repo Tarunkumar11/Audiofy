@@ -55,7 +55,7 @@ class SongList(APIView):
         return Response( {"info": "{0} has been deleted successfully".format(name)},status=status.HTTP_200_OK)
 
 class PodcastList(APIView):
-    serializer_class = PodcastSerializerget
+    serializer_class = PodcastSerializersave
     queryset = Podcast.objects.all()
     permission_classes = [permissions.AllowAny]
 
@@ -115,7 +115,10 @@ class PodcastList(APIView):
         onepodcast.save()
         return Response(PodcastSerializerget(Podcast.objects.get(pk=onepodcast.id)).data, status=status.HTTP_200_OK)
     
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk=None, format=None):
+        if pk is None:
+            data =  {"info": "Please provide the ID of the Podcast"}
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
         podcast = self.get_object(pk)
         name = podcast.name
         podcast.delete()
