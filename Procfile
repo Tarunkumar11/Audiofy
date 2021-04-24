@@ -1,1 +1,1 @@
-web gunicorn audiofy.wsgi
+web: gunicorn audiofy.wsgi
