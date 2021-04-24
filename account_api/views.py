@@ -37,6 +37,13 @@ class UserCreate(APIView):
         user.save()
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
     
+    def delete(self, request, pk=None, format=None):
+        user = self.get_object(pk)
+        username = user.username
+        user.delete()
+        return Response( {"info": "{0} has been deleted successfully".format(username)},status=status.HTTP_200_OK)
+
+    
 
 
         
