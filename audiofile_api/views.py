@@ -51,11 +51,10 @@ class SongList(APIView):
         return Response(data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk=None, format=None):
-        if pk is None:
-            return Response({"Error":"Please provide the ID of the song"}, status=status.HTTP_400_BAD_REQUEST)
         song = self.get_object(pk)
+        name = song.song_name
         song.delete()
-        return Response( {"info": "Song has been deleted successfully"},status=status.HTTP_204_NO_CONTENT)
+        return Response( {"info": "{0} has been deleted successfully".format(name)},status=status.HTTP_200_OK)
 
 class PodcastList(APIView):
     serializer_class = PodcastSerializerget
@@ -86,7 +85,7 @@ class PodcastList(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_200_OK)
     
     def post(self,request,pk=None):
         if pk is not None:
@@ -99,7 +98,10 @@ class PodcastList(APIView):
         if len(Not_exist_participant_name) != 0:
             return Response({"Error":Not_exist_participant_name  + 'do not exist'},status=status.HTTP_403_FORBIDDEN)
         
-        host = User.objects.get(username=request.data.get('host'))
+        try:
+            host = User.objects.get(username=request.data.get('host'))
+        except:
+            host = None
         if host is None:
             return Response({'Error':"Please provide correct host"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -120,7 +122,7 @@ class PodcastList(APIView):
         name = podcast.name
         podcast.delete()
         messages = {'message':'{0} Podcast has been deleted'.format(name)}
-        return Response(messages,status=status.HTTP_200_NO_CONTENT)
+        return Response(messages,status=status.HTTP_200_OK)
 
     def check_participant(self,participants):
         temp_participant = ''
