@@ -186,4 +186,4 @@ class AudiobookList(APIView):
         title = audio_book.title
         audio_book.delete()
         message = {'message':"{0} has been deleted".format(title)}
-        return Response(message,status=status.HTTP_204_NO_CONTENT)
+        return Response(message,status=status.HTTP_200_OK)
