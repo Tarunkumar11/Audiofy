@@ -33,7 +33,6 @@ class SongList(APIView):
         if pk is None:
             data =  {"info": "Please provide the ID of the song"}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
-
         OneSong = self.get_object(pk)
         serializer = SongSerializer(OneSong, data=request.data)
         if serializer.is_valid():
@@ -47,8 +46,7 @@ class SongList(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         OneSong = Song(song_name=request.data['song_name'],duration=request.data['duration'])
         OneSong.save()
-        data = {"Info":'Sucessfully Stored'}
-        return Response(data, status=status.HTTP_200_OK)
+        return Response(SongSerializer(OneSong).data, status=status.HTTP_200_OK)
     
     def delete(self, request, pk=None, format=None):
         song = self.get_object(pk)
