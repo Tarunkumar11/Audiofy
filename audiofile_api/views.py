@@ -179,7 +179,9 @@ class AudiobookList(APIView):
         audio_book.save()
         return Response(AudiobookSerializerget(Audiobook.objects.get(pk=audio_book.id)).data, status=status.HTTP_200_OK)
     
-    def delete(self, request, pk, format=None):
+    def delete(self, request, pk=None, format=None):
+        if pk is None:
+            return Response({"message":"Please provide audiobook ID"})
         audio_book = self.get_object(pk)
         title = audio_book.title
         audio_book.delete()
